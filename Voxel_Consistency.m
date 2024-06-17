@@ -1,21 +1,21 @@
 function Voxel_Consistency(Alignment_Workspace)
 
-Alignment_Workspace="/Users/ngh92/Documents/MATLAB/Lithium_APP_Script/Test_091/Alignment_Workspace.mat";
-load("/Users/ngh92/Documents/MATLAB/Lithium_APP_Script/Test_091/Alignment_Workspace.mat");
+%Alignment_Workspace="/Users/ngh92/Documents/MATLAB/Lithium_APP_Script/Test_077/Alignment_Workspace.mat";
+load(Alignment_Workspace);
 load("LUT_INDEX.mat")
 
 %Upsample each individual Voxel in the lith mask, give it an LUT 
 
-Mask_Size = size(Brain_Mask_Volume_Resampled.Voxels);
+Mask_Size = size(Brain_Mask_Lith.Voxels);
 
 uni_count=1;
-Mask_LUT=Brain_Mask_Volume_Resampled.Voxels; 
+Mask_LUT=Brain_Mask_Lith.Voxels; 
 
 for i = 1:Mask_Size(1)
     for j = 1:Mask_Size(2)
         for k = 1:Mask_Size(3)
         
-            Val=Brain_Mask_Volume_Resampled.Voxels(i,j,k);
+            Val=Brain_Mask_Lith.Voxels(i,j,k);
                 
                 if Val==1
                     Mask_LUT(i,j,k)=Mask_LUT(i,j,k)*uni_count; 
@@ -27,9 +27,9 @@ end
 
 %Now to resample the LUT
 
-sliceViewer(Mask_LUT)
+%sliceViewer(Mask_LUT)
 
-Mask_R=Brain_Mask_Volume_Resampled.VolumeGeometry;
+Mask_R=Brain_Mask_Lith.VolumeGeometry;
 
 Lith_Mask_LUT=medicalVolume(Mask_LUT,Mask_R); 
 %Save out
@@ -40,12 +40,39 @@ write(Lith_Mask_LUT,strcat(Output_Dir,"/Lithium_LUT.nii"))
 LUT_List=unique(Lith_Mask_LUT.Voxels);
 LUT_List(LUT_List == 0)=[]; 
 
-%Upsample
+%% ---- Slight problem here LUT slighty cutting out over top, seems a problem with resample step
+% Potential Fix another day
+%Lith_Mask_LUT_Pad=padarray(Lith_Mask_LUT.Voxels,[1 1],0,'both');
+%fixedVoxelSpacing=Lith_Mask_LUT.VoxelSpacing;
+%Mask_R_Pad  = medicalref3d(size(Lith_Mask_LUT_Pad), Lith_Mask_LUT. ,fixedVoxelSpacing);
+%Lith_Mask_LUT=medicalVolume(Lith_Mask_LUT_Pad,Mask_R_Pad); 
+%% ------
+%% Attempt 2 resample
+
+%Lithium_T1w_Res=Lith_T1w_MRIVolume.VolumeGeometry.VolumeSize;
+%Lithium_Img_Res=Brain_Mask_Lith.VolumeGeometry.VolumeSize;
+
+
+%% Work in progress
+
+% Shift before resampling because will have to find underlying voxel size
+% from Lithium to T1w space
 Lith_Mask_LUT_Resample=resample(Lith_Mask_LUT,Lith_T1w_MRIVolume.VolumeGeometry,method="nearest");
+write(Lith_Mask_LUT_Resample,strcat(Output_Dir,"/Lithium_LUT_T1w_Res_Unshifted.nii")); %So far resample gives shift
 
-sliceViewer(Lith_Mask_LUT_Resample)
+%% Run a 1 (lithium space) shift due to matlab counting from one, 
+%Brain_Mask_Lith = medicalVolume(Lith_Mask_LUT_Resample);
+Lithium_T1w_Res=Lith_T1w_MRIVolume.VoxelSpacing;
+Lithium_Img_Res=Brain_Mask_Lith.VoxelSpacing;
+ratios =  Lithium_Img_Res./Lithium_T1w_Res;
 
-write(Lith_Mask_LUT_Resample,strcat(Output_Dir,"/Lithium_LUT_T1w_Res.nii"))
+new_ratios=ceil(ratios-1); 
+
+Lith_Mask_LUT_Resample_Shift=circshift(Lith_Mask_LUT_Resample.Voxels, new_ratios); % One Voxel shift seems to exist
+Lith_Mask_LUT=medicalVolume(double(Lith_Mask_LUT_Resample_Shift),Lith_T1w_MRIVolume.VolumeGeometry); 
+write(Lith_Mask_LUT,strcat(Output_Dir,"/Lithium_LUT_T1w_Res.nii"))
+
+%sliceViewer(Brain_Mask_Lith)
 
 %Get tissue maps of FS (no need to resample)
 All_Atlas_Values = unique(Atlas_Reg.Voxels); 
@@ -73,6 +100,7 @@ for i = 1:length(LUT_List)
     %Get makeup
     Values_ROI=Atlas_Reg.Voxels(ROI);
     %Get Lithium
+    Lithium_ImageVoxels = Lithium_Image.Voxels;
     Lithium=Lithium_ImageVoxels(ROI_Lith_Space);
 
     ROI_Tab=tabulate(categorical(Values_ROI));
@@ -91,22 +119,8 @@ end
 
 %Change to actual names
 Subject_Table.Properties.VariableNames = Table_Head_Names; 
-writetable(Subject_Table,strcat(Output_Dir,"/Table_Values.csv"))
+writetable(Subject_Table,strcat(Output_Dir,"/Stats/Table_Values.csv"))
 
-%Build table per subject
-h=figure; 
-scatter(Subject_Table.("Outside-Brain"),Subject_Table.Lithium_Value,'fill');
-xlabel("Percentage (%) of Lithium Voxel Outside of Brain")
-ylabel("Lithium Concentration")
-title("Scatter Plot of Partial Volume effects (each dot represents a Lithium voxel)") 
-h=lsline;
-h.LineWidth=3; 
-h.LineStyle="--";
-
-saveas(h,strcat(Output_Dir,"/Scatter.pdf"))
-close all
-
-
-
+save(strcat(Output_Dir,"/VC_Workspace.mat")); %%Save of workspace for next step
 
 end 

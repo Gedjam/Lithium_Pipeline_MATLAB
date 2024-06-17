@@ -1,12 +1,14 @@
-function Aligment(Lith_Img,Lith_T1w_Img,FS_Dir,Output_Dir)
+function Alignment(Lith_Img,Lith_T1w_Img,FS_Dir,Output_Dir)
 
-Lith_Img="/Users/ngh92/Documents/Lithium_Analysis_Script/Lithuim_Data/bliss/temp_transfer/blissmr091/lithium/blissmr091_complex_avg_mag.nii";
-Lith_T1w_Img="/Users/ngh92/Documents/Lithium_Analysis_Script/Lithuim_Data/bliss/temp_transfer/blissmr091/lithium/blissmr091_T1_lithium_coil.nii.gz";
-FS_Dir="/Users/ngh92/Documents/Lithium_Analysis_Script/Lithuim_Data_FreeSurfer/blissmr091";
-Output_Dir="/Users/ngh92/Documents/MATLAB/Lithium_APP_Script/Test_091";
+%Lith_Img="/Users/ngh92/Documents/Lithium_Analysis_Script/Lithuim_Data/bliss/temp_transfer/blissmr077/lithium/blissmr077_complex_avg_mag.nii";
+%Lith_T1w_Img="/Users/ngh92/Documents/Lithium_Analysis_Script/Lithuim_Data/bliss/temp_transfer/blissmr077/lithium/blissmr077_T1w_lithium_coil.nii.gz";
+%FS_Dir="/Users/ngh92/Documents/Lithium_Analysis_Script/Lithuim_Data_FreeSurfer/blissmr077";
+%Output_Dir="/Users/ngh92/Documents/MATLAB/Lithium_APP_Script/Test_077";
 
-%Make the output directory
+%Make the output directory, keeping these separate for now
 mkdir(Output_Dir)
+mkdir(strcat(Output_Dir,"/Image_Checks"));
+mkdir(strcat(Output_Dir,"/Stats")); 
 
 %FreeSurfer image lets get orig & brain
 FS_Dir_orig=strcat(FS_Dir,"/mri/orig.mgz"); 
@@ -23,14 +25,14 @@ Brain_IMG_Volume = medicalVolume(FS_Brain_Img);
 Lith_T1w_Img = fullfile(Lith_T1w_Img);
 Lith_T1w_MRIVolume = medicalVolume(Lith_T1w_Img);
 %Fixed seems to be Sag Trans Cor
-Lith_T1w_orientation=Lith_T1w_MRIVolume.PlaneMapping; 
+Lith_T1w_orientation=Lith_T1w_MRIVolume.PlaneMapping 
 
 %Orig
 FS_Orig_Img = fullfile(FS_Dir,"/mri/orig.nii.gz"); 
 FS_Orig_MRIVolume = medicalVolume(FS_Orig_Img); 
 
 %moving seems to be Sag Trans Cor
-FS_Orig_orientation=FS_Orig_MRIVolume.PlaneMapping;
+FS_Orig_orientation=FS_Orig_MRIVolume.PlaneMapping
 
 
 % Lets view each of the images
@@ -46,49 +48,64 @@ center_FS_Orig = FS_Orig_VolumeSize/2;
 fixedVoxelSpacing = Lith_T1w_MRIVolume.VoxelSpacing;
 movingVoxelSpacing = FS_Orig_MRIVolume.VoxelSpacing;
 
-
-figure
-imshowpair(Lith_T1w_MRIVoxels(:,:,center_Lith_T1w(3)),FS_Orig_MRIVoxels(:,:,center_FS_Orig(3)))
-title("Orientation offset")
+% Lets view the offset of orientation
+Orientation=figure;
+imshowpair(Lith_T1w_MRIVoxels(:,:,center_Lith_T1w(3)),FS_Orig_MRIVoxels(:,:,center_FS_Orig(3)));
+Orientation.Position=[100 100 540 400];
+title("Orientation Offset Original")
+saveas(Orientation,strcat(Output_Dir,"/Image_Checks/Orientation_Ofset.png"))
+close(Orientation)
 
 %Since the orientations are off, lets swap them back
 FS_Orig_MRIVoxels = permute(FS_Orig_MRIVoxels,[1 3 2]); % swapped matrix
 %Repeat this for the Brain image
 BrainMRIVoxels = permute(Brain_IMG_Volume.Voxels,[1 3 2]); 
 
-figure
+%Double check the corrected orientations
+Orientation_Fix=figure; 
 imshowpair(Lith_T1w_MRIVoxels(:,:,center_Lith_T1w(3)),FS_Orig_MRIVoxels(:,:,center_FS_Orig(3)))
-title("Unregistered Transverse Slice")
+Orientation_Fix.Position=[100 100 540 400];
+title("Unregistered Transverse Slice with fixed Orientation")
+saveas(Orientation_Fix,strcat(Output_Dir,"/Image_Checks/Orientation_Fix.png"));
+close(Orientation_Fix)
 
 
-%Build up the destination info
+%Build up header information for the registration process
 Rfixed3d  = imref3d(Lith_T1w_VolumeSize,fixedVoxelSpacing(1), ...
     fixedVoxelSpacing(2),fixedVoxelSpacing(3));
 Rmoving3d = imref3d(size(FS_Orig_MRIVoxels),movingVoxelSpacing(1), ...
-    movingVoxelSpacing(3),movingVoxelSpacing(2)); %Remember to swap here
+    movingVoxelSpacing(3),movingVoxelSpacing(2)); %Remember to swap here due to orientation
 
-%Time for registration
+%Time for registration, selecting monomodal reg
 [optimizer,metric] = imregconfig('monomodal');
 
 tform = imregtform(FS_Orig_MRIVoxels,Rmoving3d,Lith_T1w_MRIVoxels,Rfixed3d,"rigid",optimizer,metric);
 [movingRegisteredVoxels,ref]= imwarp(FS_Orig_MRIVoxels,Rmoving3d,tform,"linear",OutputView=Rfixed3d);
 
-%Lets also register th brain 
+%Lets also register the brain 
 [BrainRegisteredVoxels,ref2]= imwarp(BrainMRIVoxels,Rmoving3d,tform,"linear",OutputView=Rfixed3d);
 %Lets create a simple brain mask too
 BrainRegisteredVoxels_Mask=(BrainRegisteredVoxels>0); 
 
-%Check
+%Check sizes of voxels, should be all the same
 whos movingRegisteredVoxels Lith_T1w_MRIVoxels BrainRegisteredVoxels
 
-figure
+%Check again for registration
+Reg_T1=figure;
 imshowpair(movingRegisteredVoxels(:,:,center_Lith_T1w(3)),Lith_T1w_MRIVoxels(:,:,center_Lith_T1w(3)))
-title("registered Transverse Slice")
+Reg_T1.Position=[100 100 540 400];
+title("Registered Transverse Slice")
+saveas(Reg_T1,strcat(Output_Dir,"/Image_Checks/Registered_Slice_T1w_2_T1wLith.png"))
+close(Reg_T1)
 
-figure
+Reg_Brain=figure; 
 imshowpair(BrainRegisteredVoxels(:,:,center_Lith_T1w(3)),Lith_T1w_MRIVoxels(:,:,center_Lith_T1w(3)))
-title("registered Transverse Slice")
+Reg_Brain.Position=[100 100 540 400];
+title("Registered Transverse Slice of Brain, Check if fit is correct")
+saveas(Reg_Brain,strcat(Output_Dir,"/Image_Checks/Registered_Slice_T1wBrain_2_T1wLith.png"))
+close(Reg_Brain)
 
+%Build image & assoicated header ready for saving
 R = Lith_T1w_MRIVolume.VolumeGeometry;
 movingRegisteredVolume = medicalVolume(movingRegisteredVoxels,R);
 
@@ -118,10 +135,11 @@ FS_Atlas_Size = size(FS_AtlasVoxels);
 FS_Atlas_Regions(FS_Atlas_Regions == 0) = [];
 
 %Look first
-figure
+Cor_Align=figure; 
 imshowpair(FS_AtlasVoxels(:,:,center_FS_Orig(3)),FS_Orig_MRIVoxels(:,:,center_FS_Orig(3)))
-title("nonregistered Transverse Slice")
-
+Cor_Align.Position=[100 100 540 400];
+title("Check alignment of Cortical ribbon (Transverse View)")
+close(Cor_Align)
 
 Atlas_4D=zeros([FS_Atlas_Size length(FS_Atlas_Regions)]);
 Atlas_4D_Reg=zeros([size(movingRegisteredVoxels) length(FS_Atlas_Regions)]);
@@ -170,17 +188,20 @@ Lithium_R=imref3d(Lithium_ImageVoxels_Sz,Lithium_Image.VoxelSpacing(1),Lithium_I
 %Setup for resample 
 Brain_Mask_Volume=medicalVolume(double(BrainRegisteredVoxels_Mask),R);
 
+%% When ever a resample
 Brain_Mask_Volume_Resampled=resample(Brain_Mask_Volume,Lithium_Image.VolumeGeometry,method="nearest");
+%% Run a -1 shift due to matlab counting from one
+Brain_Mask_Shift=circshift(Brain_Mask_Volume_Resampled.Voxels, [-1, -1, -1]); % One Voxel shift seems to exist
+Brain_Mask_Lith = medicalVolume(double(Brain_Mask_Shift),Lithium_Image.VolumeGeometry);
+write(Brain_Mask_Lith,strcat(Output_Dir,"/Lithium_Mask.nii"))
 
-%% Leave this here for now
-%Brain_Mask_Shift=circshift(Brain_Mask, [-1, -1, -1]); % One Voxel shift seems to exist
-%Brain_Mask_Lith = medicalVolume(double(Brain_Mask_Shift),Lithium_Image.VolumeGeometry);
-%write(Brain_Mask_Lith,strcat(Output_Dir,"/Lithium_Mask.nii"))
+%Leave this for now, no need Line above is fine
+%write(Brain_Mask_Volume_Resampled,strcat(Output_Dir,"/Registered_Lithium_Mask.nii"))
+%write(Brain_Mask_Shift,strcat(Output_Dir,"/Registered_Lithium_Mask.nii"))
 
-write(Brain_Mask_Volume_Resampled,strcat(Output_Dir,"/Registered_Lithium_Mask.nii"))
 
 %% Save workspace
 
-save(strcat(Output_Dir,"/Alignment_Workspace.mat")); %%Add the main images to workspace for easy loading
+save(strcat(Output_Dir,"/Alignment_Workspace.mat"),'Brain_Mask_Lith','Output_Dir','Lith_T1w_MRIVolume','Atlas_Reg','Lithium_Image'); %%Add the main images to workspace for easy loading
 
 end 

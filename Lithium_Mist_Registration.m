@@ -64,15 +64,16 @@ Rmoving3d_crop = imref3d(size(MNIcrop),movingVoxelSpacing(1), ...
 %Origcrop_rescale=rescale(Fixed);
 
 %MNI152_Voxels_Hist = imhistmatchn(MNI152_Voxels_rescale,Origcrop_rescale);
-sliceViewer(MNI152_Voxels_Hist)
+%sliceViewer(MNI152_Voxels_Hist)
+
+MNI152_Voxels_Hist=imgaussfilt3(Moving, 4);
+Origcrop_rescale=imgaussfilt3(Fixed, 4);
 
 figure
 montage(MNI152_Voxels_Hist,'DisplayRange',[])
 figure
 montage(Origcrop_rescale,'DisplayRange',[])
 
-MNI152_Voxels_Hist=imgaussfilt3(Moving, 4);
-Origcrop_rescale=imgaussfilt3(Fixed, 4);
 
 sliceViewer(MNI152_Voxels_Hist)
 
