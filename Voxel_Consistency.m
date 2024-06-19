@@ -77,19 +77,18 @@ write(Lith_Mask_LUT,strcat(Output_Dir,"/Lithium_LUT_T1w_Res.nii"))
 %Get tissue maps of FS (no need to resample)
 All_Atlas_Values = unique(Atlas_Reg.Voxels); 
 
-%Get values of atlas
+%Get values of atlas and build whats required for the tables
 Table_Head = ['Voxel','Lithium_Value',string(All_Atlas_Values')];
-
 [is_there,name_idx]=ismember(LUT_Index.LUT,All_Atlas_Values);
 Names=LUT_Index.Name(is_there,:); %Maybe sort order out too if required keep idx here for now
-
 Table_Head_Names = ['Voxel','Lithium_Value',string(Names')];
-
-
 Table_Layout=nan([length(LUT_List),length(Table_Head)]);
-
 Subject_Table=array2table(Table_Layout);
 Subject_Table.Properties.VariableNames = Table_Head; 
+
+%Add a cheeky Voxel size table to QC resampling
+Resample_Vox_QC=nan([length(LUT_List),1]);
+
 
 %% Build basic table first  
 
@@ -105,6 +104,10 @@ for i = 1:length(LUT_List)
 
     ROI_Tab=tabulate(categorical(Values_ROI));
     ROI_Tab=cell2table(ROI_Tab);
+    
+    %Adding this in to check size of each voxel
+    Size_of_ROI=sum(ROI_Tab.ROI_Tab2);
+    Resample_Vox_QC(i,1)=Size_of_ROI;
 
     %Add into the table
     Subject_Table.Voxel(i)=LUT_List(i);
@@ -121,6 +124,16 @@ end
 Subject_Table.Properties.VariableNames = Table_Head_Names; 
 writetable(Subject_Table,strcat(Output_Dir,"/Stats/Table_Values.csv"))
 
+%Also save size of Lith voxels for resample QC
+Resample_Vox_QC_fig=figure;
+Resample_Vox_QC_fig=piechart(Resample_Vox_QC); 
+Resample_Vox_QC_fig.Labels=[];
+Resample_Vox_QC_fig.EdgeColor="none"; 
+title("QC: Do all values in piechart look to be (somewhat) equal?")
+saveas(Resample_Vox_QC_fig,strcat(Output_Dir,"/Stats/Resampled_Vox_Sizes.png")); 
+close all 
+
+%Now save workspace
 save(strcat(Output_Dir,"/VC_Workspace.mat")); %%Save of workspace for next step
 
 end 

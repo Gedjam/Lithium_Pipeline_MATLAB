@@ -127,7 +127,7 @@ FS_AtlasVoxels=FS_AtlasVolume.Voxels;
 %Run swap
 FS_AtlasVoxels = permute(FS_AtlasVoxels,[1 3 2]);
 
-sliceViewer(FS_AtlasVoxels)
+%sliceViewer(FS_AtlasVoxels)
 
 %Get unique atlas regions
 FS_Atlas_Regions = unique(FS_AtlasVoxels);

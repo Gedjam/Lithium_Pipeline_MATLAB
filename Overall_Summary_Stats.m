@@ -25,8 +25,6 @@ for i = 1:length(Regions)
     Individual_Region(row,:)=[];
 
     Weighted_Mean_Region(1,i) = mean(table2array(Lithium),Weights=table2array(Individual_Region));
-
-    
    
 end
 
