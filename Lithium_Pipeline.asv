@@ -1,4 +1,4 @@
-function Lithium_Pipeline(List,Lithium_Img_List,Lithium_T1_List,FS_Folder_List,Overall_Output_Dir)
+%function Lithium_Pipeline(List,Lithium_Img_List,Lithium_T1_List,FS_Folder_List,Overall_Output_Dir)
 
 %% For test purposes
 List="/Users/ngh92/Documents/GitHub/Lithium_Pipeline_MATLAB/Subject_List_Test.txt";
@@ -49,7 +49,7 @@ Subj_Size=length(List_Import);
 
 %Now get the names for all the header names, create a table
 load("LUT_INDEX.mat")
-Total_Names=["ID",string(LUT_Index.Name')];
+Total_Names=(LUT_Index.Name');
 Table_Head_Names = ["ID","Voxel","Lithium_Value",string(LUT_Index.Name')];
 
 Total_Table = array2table(nan(1,length(Table_Head_Names)),'VariableNames',Table_Head_Names); 
@@ -85,7 +85,7 @@ for i=1:length(List_Import)
         Total_Table=Combined_Table;
 
         %---- Same for the MWV    
-        Current_Missing_MWV = setdiff(string(Total_MWV_Table.Properties.VariableNames),string(Combined_MWV_Table.Properties.VariableNames)); 
+        Current_Missing_MWV = setdiff(string(Total_MWV_Table.Properties.VariableNames),string(Total_MWV_Table.Properties.VariableNames)); 
         Combined_MWV_Table = [Combined_MWV_Table array2table(nan(height(Combined_MWV_Table), numel(Current_Missing_MWV)), 'VariableNames', Current_Missing_MWV)]; 
         Total_MWV_Table=Combined_MWV_Table;
 
@@ -98,10 +98,10 @@ for i=1:length(List_Import)
         Total_Table=[Total_Table;Combined_Table]; 
 
         
-        Current_Missing_MWV = setdiff(string(Total_MWV_Table.Properties.VariableNames),string(Combined_MWV_Table.Properties.VariableNames));
+        Current_Missing = setdiff(string(Total_Table.Properties.VariableNames),string(Combined_Table.Properties.VariableNames));
         %Now combine the additional variables from other tables
-        Combined_MWV_Table = [Combined_MWV_Table array2table(nan(height(Combined_MWV_Table), numel(Current_Missing_MWV)), 'VariableNames', Current_Missing_MWV)];  
-        Total_MWV_Table=[Total_MWV_Table;Combined_MWV_Table]; 
+        Combined_Table = [Combined_Table array2table(nan(height(Combined_Table), numel(Current_Missing)), 'VariableNames', Current_Missing)];  
+        Total_Table=[Total_Table;Combined_Table]; 
 
     end 
 end 
@@ -111,4 +111,6 @@ writetable(Total_MWV_Table,(strcat(Overall_Output_Dir,"/Overall_Stats/Overall_Re
 
 %Now combine rows to create Inside/Outisde brain, Tissue and Lobe based measures
 
-end
+
+
+%end

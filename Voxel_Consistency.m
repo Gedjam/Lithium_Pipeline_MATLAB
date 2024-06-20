@@ -1,6 +1,6 @@
 function Voxel_Consistency(Alignment_Workspace)
 
-%Alignment_Workspace="/Users/ngh92/Documents/MATLAB/Lithium_APP_Script/Test_077/Alignment_Workspace.mat";
+Alignment_Workspace="/Users/ngh92/Documents/MATLAB/Lithium_APP_Script/Test_077/Alignment_Workspace.mat";
 load(Alignment_Workspace);
 load("LUT_INDEX.mat")
 
@@ -65,7 +65,6 @@ write(Lith_Mask_LUT_Resample,strcat(Output_Dir,"/Lithium_LUT_T1w_Res_Unshifted.n
 Lithium_T1w_Res=Lith_T1w_MRIVolume.VoxelSpacing;
 Lithium_Img_Res=Brain_Mask_Lith.VoxelSpacing;
 ratios =  Lithium_Img_Res./Lithium_T1w_Res;
-
 new_ratios=ceil(ratios-1); 
 
 Lith_Mask_LUT_Resample_Shift=circshift(Lith_Mask_LUT_Resample.Voxels, new_ratios); % One Voxel shift seems to exist
@@ -81,7 +80,7 @@ All_Atlas_Values = unique(Atlas_Reg.Voxels);
 Table_Head = ['Voxel','Lithium_Value',string(All_Atlas_Values')];
 [is_there,name_idx]=ismember(LUT_Index.LUT,All_Atlas_Values);
 Names=LUT_Index.Name(is_there,:); %Maybe sort order out too if required keep idx here for now
-Table_Head_Names = ['Voxel','Lithium_Value',string(Names')];
+Table_Head_Names = ['Voxel','Lithium_Value',string(Names')]; % Will only give names to what is there
 Table_Layout=nan([length(LUT_List),length(Table_Head)]);
 Subject_Table=array2table(Table_Layout);
 Subject_Table.Properties.VariableNames = Table_Head; 
