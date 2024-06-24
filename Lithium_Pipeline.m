@@ -109,6 +109,120 @@ end
 writetable(Total_Table,(strcat(Overall_Output_Dir,"/Overall_Stats/Overall_Table_Values.csv")));
 writetable(Total_MWV_Table,(strcat(Overall_Output_Dir,"/Overall_Stats/Overall_Regional_Values_MWA.csv")));
 
-%Now combine rows to create Inside/Outisde brain, Tissue and Lobe based measures
+%% Now sum rows to create a hierarchical region wise breakdown (Added 07.2024 on request)
+%Lobes
+Lobe_List = unique(LUT_Index.Lobe); 
+Total_Table_Lobe=Total_Table(:,[1:3]); %Get the basic columns for table
+for i = 1:length(Lobe_List) %for each lobe
+    Spec_Table=LUT_Index(LUT_Index.Lobe == Lobe_List(i), :);
+    Total_Spec=sum(Total_Table(:,[Spec_Table.Name]),2,"omitnan"); %Get the sum colmn for that specific type
+    Total_Table_Lobe=horzcat(Total_Table_Lobe,Total_Spec);
+    Lobe=Lobe_LUT(Lobe_LUT.Lobe_Idx==Lobe_List(i),:);
+    Total_Table_Lobe=renamevars(Total_Table_Lobe,"sum",Lobe.Lobe_Name); %Rename the new column
+end 
+
+%Tissue Compartments
+Tissue_List = unique(LUT_Index.Tissue); 
+Total_Table_Tissue=Total_Table(:,[1:3]); %Get the basic columns for table
+for i = 1:length(Tissue_List) %for each lobe
+    Spec_Table=LUT_Index(LUT_Index.Tissue == Tissue_List(i), :);
+    Total_Spec=sum(Total_Table(:,[Spec_Table.Name]),2,"omitnan"); %Get the sum colmn for that specific type
+    Total_Table_Tissue=horzcat(Total_Table_Tissue,Total_Spec);
+    Tissue=Tissue_LUT(Tissue_LUT.Tissue_Idx==Tissue_List(i),:);
+    Total_Table_Tissue=renamevars(Total_Table_Tissue,"sum",Tissue.Tissue_Names);
+end 
+
+%Brain vs nonbrain
+Brain_List = unique(LUT_Index.Brain); 
+Total_Table_Brain=Total_Table(:,[1:3]); %Get the basic columns for table
+for i = 1:length(Brain_List) %for each lobe
+    Spec_Table=LUT_Index(LUT_Index.Brain == Brain_List(i), :);
+    Total_Spec=sum(Total_Table(:,[Spec_Table.Name]),2,"omitnan"); %Get the sum colmn for that specific type
+    Total_Table_Brain=horzcat(Total_Table_Brain,Total_Spec);
+    Brain=Brain_LUT(Brain_LUT.Brain_Idx==Brain_List(i),:);
+    Total_Table_Brain=renamevars(Total_Table_Brain,"sum",Brain.Brain_Names);
+end 
+
+% Save into new workspace
+
+writetable(Total_Table_Lobe,strcat(Overall_Output_Dir,"/Overall_Stats/Total_Table_Lobe.csv"))
+writetable(Total_Table_Tissue,strcat(Overall_Output_Dir,"/Overall_Stats/Total_Table_Tissue.csv"))
+writetable(Total_Table_Brain,strcat(Overall_Output_Dir,"/Overall_Stats/Total_Table_Brain.csv"))
+
+
+%% Now calculate the MWA for the new Columns
+
+Name_List=unique(Total_MWV_Table.ID);
+
+%For Lobe
+Lobe_Regions=Total_Table_Lobe(:,4:end);
+Total_Table_Lobe_MWA=nan(length(Name_List),width(Lobe_Regions)); 
+Total_Table_Lobe_MWA=array2table(Total_Table_Lobe_MWA);
+Total_Table_Lobe_MWA.Properties.VariableNames=Lobe_Regions.Properties.VariableNames; 
+
+for i = 1:length(Name_List) %Per individual
+    Subj_MWA=Total_Table_Lobe(Total_Table_Lobe.ID==(Name_List(i)),:);
+    Lobe_Regions=Subj_MWA(:,4:end);
+
+    for j = 1:width(Lobe_Regions) %Per Lobe
+        jn=j+3;%Correct position on the Atlas     
+        [row, ~] = find(Subj_MWA(:,jn).(1));
+        Lobe_Rows = Subj_MWA(row,:); 
+        MWA_Lobe=mean(Lobe_Rows.Lithium_Value,Weights=(Lobe_Rows(:,jn).(1))); %MWA
+        Total_Table_Lobe_MWA{i,j}=MWA_Lobe;      
+    end
+end 
+
+ID=Name_List;
+ID_Table=table(ID);
+Total_Table_Lobe_MWA=horzcat(ID_Table,Total_Table_Lobe_MWA); 
+writetable(Total_Table_Lobe_MWA,strcat(Overall_Output_Dir,"/Overall_Stats/Total_Table_Lobe_MWA.csv"))
+
+
+%For Tissue
+Tissue_Types=Total_Table_Tissue(:,4:end);
+Total_Table_Tissue_MWA=nan(length(Name_List),width(Tissue_Types)); 
+Total_Table_Tissue_MWA=array2table(Total_Table_Tissue_MWA);
+Total_Table_Tissue_MWA.Properties.VariableNames=Tissue_Types.Properties.VariableNames; 
+
+for i = 1:length(Name_List) %Per individual
+    Subj_MWA=Total_Table_Tissue(Total_Table_Tissue.ID==(Name_List(i)),:);
+    Tissue_Types=Subj_MWA(:,[4:end]);
+
+    for j = 1:width(Tissue_Types) %Per Tissue Type
+        jn=j+3;%Correct position on the Atlas     
+        [row, ~] = find(Subj_MWA(:,jn).(1));
+        Tissue_Rows = Subj_MWA(row,:); 
+        MWA_Tissue=mean(Tissue_Rows.Lithium_Value,Weights=(Tissue_Rows(:,jn).(1))); %MWA
+        Total_Table_Tissue_MWA{i,j}=MWA_Tissue;      
+    end
+end 
+
+Total_Table_Tissue_MWA=horzcat(ID_Table,Total_Table_Tissue_MWA); 
+writetable(Total_Table_Tissue_MWA,strcat(Overall_Output_Dir,"/Overall_Stats/Total_Table_Tissue_MWA.csv"))
+
+
+%For Brain
+Brain_Types=Total_Table_Tissue(:,4:end);
+Total_Table_Brain_MWA=nan(length(Name_List),width(Brain_Types)); 
+Total_Table_Brain_MWA=array2table(Total_Table_Brain_MWA);
+Total_Table_Brain_MWA.Properties.VariableNames=Brain_Types.Properties.VariableNames; 
+
+for i = 1:length(Name_List) %Per individual
+    Subj_MWA=Total_Table_Tissue(Total_Table_Brain.ID==(Name_List(i)),:);
+    Brain_Types=Subj_MWA(:,[4:end]);
+
+    for j = 1:width(Brain_Types) %Per Tissue Type
+        jn=j+3;%Correct position on the Atlas     
+        [row, ~] = find(Subj_MWA(:,jn).(1));
+        Brain_Rows = Subj_MWA(row,:); 
+        MWA_Brain=mean(Brain_Rows.Lithium_Value,Weights=(Brain_Rows(:,jn).(1))); %MWA
+        Total_Table_Brain_MWA{i,j}=MWA_Brain;      
+    end
+end 
+
+Total_Table_Brain_MWA=horzcat(ID_Table,Total_Table_Brain_MWA); 
+writetable(Total_Table_Brain_MWA,strcat(Overall_Output_Dir,"/Overall_Stats/Total_Table_Brain_MWA.csv"))
+
 
 end
