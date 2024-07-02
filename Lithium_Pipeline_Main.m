@@ -1,4 +1,4 @@
-function Lithium_Pipeline(List,Lithium_Img_List,Lithium_T1_List,FS_Folder_List,Overall_Output_Dir)
+function Lithium_Pipeline_Main(List,Lithium_Img_List,Lithium_T1_List,FS_Folder_List,Overall_Output_Dir)
 
 %% For test purposes
 List="/Users/ngh92/Documents/GitHub/Lithium_Pipeline_MATLAB/Subject_List_Test.txt";
