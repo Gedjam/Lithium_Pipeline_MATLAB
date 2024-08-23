@@ -175,33 +175,33 @@ FS_AtlasVoxels_Reg_Brain=double(FS_AtlasVoxels_Reg).*double(BrainRegisteredVoxel
 Atlas_Reg = medicalVolume(FS_AtlasVoxels_Reg_Brain,R);
 write(Atlas_Reg,strcat(Output_Dir,"/Atlas_Registered_Lithium.nii"))
 
-%% --------- Resample Mask to Lithium resolution
+%% --------- Resample Mask to Lithium resolution, Version 2(22/08/24), no need leaving this out for now
+% Taking out the need for a mask whatsoever
 
 Lithium_Image = medicalVolume(Lith_Img);
 Lithium_ImageVoxels = Lithium_Image.Voxels;
 
-sliceViewer(Lithium_ImageVoxels)
+%sliceViewer(Lithium_ImageVoxels)
 
-Lithium_ImageVoxels_Sz=size(Lithium_ImageVoxels);
-Lithium_R=imref3d(Lithium_ImageVoxels_Sz,Lithium_Image.VoxelSpacing(1),Lithium_Image.VoxelSpacing(2),Lithium_Image.VoxelSpacing(3)); 
+%Lithium_ImageVoxels_Sz=size(Lithium_ImageVoxels);
+%Lithium_R=imref3d(Lithium_ImageVoxels_Sz,Lithium_Image.VoxelSpacing(1),Lithium_Image.VoxelSpacing(2),Lithium_Image.VoxelSpacing(3)); 
 
 %Setup for resample 
-Brain_Mask_Volume=medicalVolume(double(BrainRegisteredVoxels_Mask),R);
+%Brain_Mask_Volume=medicalVolume(double(BrainRegisteredVoxels_Mask),R);
 
 %% When ever a resample
-Brain_Mask_Volume_Resampled=resample(Brain_Mask_Volume,Lithium_Image.VolumeGeometry,method="nearest");
+%Brain_Mask_Volume_Resampled=resample(Brain_Mask_Volume,Lithium_Image.VolumeGeometry,method="nearest");
 %% Run a -1 shift due to matlab counting from one
-Brain_Mask_Shift=circshift(Brain_Mask_Volume_Resampled.Voxels, [-1, -1, -1]); % One Voxel shift seems to exist
-Brain_Mask_Lith = medicalVolume(double(Brain_Mask_Shift),Lithium_Image.VolumeGeometry);
-write(Brain_Mask_Lith,strcat(Output_Dir,"/Lithium_Mask.nii"))
+%Brain_Mask_Shift=circshift(Brain_Mask_Volume_Resampled.Voxels, [-1, -1, -1]); % One Voxel shift seems to exist
+%Brain_Mask_Lith = medicalVolume(double(Brain_Mask_Shift),Lithium_Image.VolumeGeometry);
+%write(Brain_Mask_Lith,strcat(Output_Dir,"/Lithium_Mask.nii"))
 
-%Leave this for now, no need Line above is fine
-%write(Brain_Mask_Volume_Resampled,strcat(Output_Dir,"/Registered_Lithium_Mask.nii"))
-%write(Brain_Mask_Shift,strcat(Output_Dir,"/Registered_Lithium_Mask.nii"))
+%% --------- Leave out for now
+
 
 
 %% Save workspace
 
-save(strcat(Output_Dir,"/Alignment_Workspace.mat"),'Brain_Mask_Lith','Output_Dir','Lith_T1w_MRIVolume','Atlas_Reg','Lithium_Image'); %%Add the main images to workspace for easy loading
+save(strcat(Output_Dir,"/Alignment_Workspace.mat"),'Output_Dir','Lith_T1w_MRIVolume','Atlas_Reg','Lithium_Image'); %%Add the main images to workspace for easy loading
 
 end 

@@ -120,17 +120,14 @@ end
 
 %Change to actual names
 Subject_Table.Properties.VariableNames = Table_Head_Names; 
-%Get rid of rows that contain voxels that do not sit in any region
-%whatsoever
 Last_Row = size(Subject_Table,2);
-Subj_Table_Check = Subject_Table(:,3:Last_Row); 
-[~ , Remove] = rmmissing(Subj_Table_Check,1,'MinNumMissing',Last_Row-2); %Check if full line is nans
-Subject_Table(Remove , : ) = [];
+Subj_Table_Check = Subject_Table(:,[2,Last_Row]); 
+[~ , Remove] = rmmissing(Subj_Table_Check);
+
 writetable(Subject_Table,strcat(Output_Dir,"/Stats/Table_Values.csv"))
 
 %Also save size of Lith voxels for resample QC
 Resample_Vox_QC_fig=figure;
-Resample_Vox_QC(Remove , :) = [];
 Resample_Vox_QC_fig=piechart(Resample_Vox_QC); 
 Resample_Vox_QC_fig.Labels=[];
 Resample_Vox_QC_fig.EdgeColor="none"; 

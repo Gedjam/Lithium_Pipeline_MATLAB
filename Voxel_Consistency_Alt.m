@@ -1,23 +1,26 @@
 function Voxel_Consistency(Alignment_Workspace)
 
-%Alignment_Workspace="/Users/ngh92/Documents/MATLAB/Lithium_APP_Script/Test_077/Alignment_Workspace.mat";
+Alignment_Workspace="/Users/ngh92/Documents/MATLAB/Lithium_APP_Script/Test_077/Alignment_Workspace.mat";
 load(Alignment_Workspace);
 load("LUT_INDEX.mat")
 
-%Upsample each individual Voxel in the complete Lithium image, give it an LUT 
+%Upsample each individual Voxel in the lith mask, give it an LUT 
 
-Lith_Size = size(Lithium_Image.Voxels);
+Mask_Size = size(Brain_Mask_Lith.Voxels);
 
 uni_count=1;
-Lith_LUT=Lithium_Image.Voxels; 
+Mask_LUT=Brain_Mask_Lith.Voxels; 
 
-for i = 1:Lith_Size(1)
-    for j = 1:Lith_Size(2)
-        for k = 1:Lith_Size(3)                
-                %if Val==1 Cover everything in the FOV
-                    Lith_LUT(i,j,k)=uni_count; 
+for i = 1:Mask_Size(1)
+    for j = 1:Mask_Size(2)
+        for k = 1:Mask_Size(3)
+        
+            Val=Brain_Mask_Lith.Voxels(i,j,k);
+                
+                if Val==1
+                    Mask_LUT(i,j,k)=Mask_LUT(i,j,k)*uni_count; 
                     uni_count=uni_count+1;                                    
-                %end 
+                end 
         end 
     end
 end     
@@ -26,9 +29,9 @@ end
 
 %sliceViewer(Mask_LUT)
 
-Mask_R=Lithium_Image.VolumeGeometry;
+Mask_R=Brain_Mask_Lith.VolumeGeometry;
 
-Lith_Mask_LUT=medicalVolume(Lith_LUT,Mask_R); 
+Lith_Mask_LUT=medicalVolume(Mask_LUT,Mask_R); 
 %Save out
 write(Lith_Mask_LUT,strcat(Output_Dir,"/Lithium_LUT.nii"))
 
@@ -54,13 +57,17 @@ LUT_List(LUT_List == 0)=[];
 
 % Shift before resampling because will have to find underlying voxel size
 % from Lithium to T1w space
+Lith_T1w_VoxelSize = Lith_T1w_MRIVolume.VoxelSpacing;
+ratio = Lith_T1w_VoxelSize ./ Lith_Mask_LUT.VoxelSpacing; 
+
+
 Lith_Mask_LUT_Resample=resample(Lith_Mask_LUT,Lith_T1w_MRIVolume.VolumeGeometry,method="nearest");
 write(Lith_Mask_LUT_Resample,strcat(Output_Dir,"/Lithium_LUT_T1w_Res_Unshifted.nii")); %So far resample gives shift
 
 %% Run a 1 (lithium space) shift due to matlab counting from one, 
 %Brain_Mask_Lith = medicalVolume(Lith_Mask_LUT_Resample);
 Lithium_T1w_Res=Lith_T1w_MRIVolume.VoxelSpacing;
-Lithium_Img_Res=Lith_Mask_LUT.VoxelSpacing;
+Lithium_Img_Res=Brain_Mask_Lith.VoxelSpacing;
 ratios =  Lithium_Img_Res./Lithium_T1w_Res;
 new_ratios=ceil(ratios-1); 
 
@@ -91,7 +98,7 @@ Resample_Vox_QC=nan([length(LUT_List),1]);
 for i = 1:length(LUT_List)
 
     ROI=(Lith_Mask_LUT_Resample.Voxels==LUT_List(i)); %Per each Lith voxel T1 reso
-    ROI_Lith_Space=(Lith_LUT==LUT_List(i)); %Per each Lith vox, Lith resolution
+    ROI_Lith_Space=(Mask_LUT==LUT_List(i)); %Per each Lith vox, Lith resolution
     %Get makeup
     Values_ROI=Atlas_Reg.Voxels(ROI);
     %Get Lithium
@@ -116,21 +123,12 @@ for i = 1:length(LUT_List)
         end 
 end 
 
-
-
 %Change to actual names
 Subject_Table.Properties.VariableNames = Table_Head_Names; 
-%Get rid of rows that contain voxels that do not sit in any region
-%whatsoever
-Last_Row = size(Subject_Table,2);
-Subj_Table_Check = Subject_Table(:,3:Last_Row); 
-[~ , Remove] = rmmissing(Subj_Table_Check,1,'MinNumMissing',Last_Row-2); %Check if full line is nans
-Subject_Table(Remove , : ) = [];
 writetable(Subject_Table,strcat(Output_Dir,"/Stats/Table_Values.csv"))
 
 %Also save size of Lith voxels for resample QC
 Resample_Vox_QC_fig=figure;
-Resample_Vox_QC(Remove , :) = [];
 Resample_Vox_QC_fig=piechart(Resample_Vox_QC); 
 Resample_Vox_QC_fig.Labels=[];
 Resample_Vox_QC_fig.EdgeColor="none"; 
