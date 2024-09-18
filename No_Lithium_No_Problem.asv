@@ -49,16 +49,12 @@ Atlas_IMG_Voume = medicalVolume(Atlas_Img);
 %Fixed is Sag Cor Trans
 Lith_Img = fullfile(Lith);
 Lith_MRIVolume = medicalVolume(Lith_Img);
-Lith_orientation=Lith_MRIVolume.PlaneMapping; %Check Orientation
+Lith_orientation=Lith_MRIVolume.PlaneMapping %Check Orientation
 
 
 %Orig
 %moving seems to be Sag Trans Cor
-FS_Orig_orientation=FS_Orig_MRIVolume.PlaneMapping;
-
-
-% Orientation fix!
-[~, Lith_orientation] = ismember(Lith_orientation, FS_Orig_orientation); 
+FS_Orig_orientation=FS_Orig_MRIVolume.PlaneMapping
 
 
 % Lets view each of the images
@@ -74,13 +70,13 @@ center_FS_Orig = FS_Orig_VolumeSize/2;
 movingVoxelSpacing = FS_Orig_MRIVolume.VoxelSpacing;
 
 %Since the orientations are off, lets swap them back
-FS_Orig_MRIVoxels = permute(FS_Orig_MRIVoxels,Lith_orientation); % just swap matrix for orig
+FS_Orig_MRIVoxels = permute(FS_Orig_MRIVoxels,[1 3 2]); % just swap matrix for orig
 %Repeat this for the Brain image
-BrainMRIVoxels = permute(Brain_IMG_Volume.Voxels,Lith_orientation);
+BrainMRIVoxels = permute(Brain_IMG_Volume.Voxels,[1 3 2]);
 %Repeat this for the WM Seg 
-WM_Seg_MRIVoxels = permute(WM_Seg_IMG_Volume.Voxels,Lith_orientation);
+WM_Seg_MRIVoxels = permute(WM_Seg_IMG_Volume.Voxels,[1 3 2]);
 %Again for Atlas
-Atlas_MRI_Voxels = permute(Atlas_IMG_Voume.Voxels,Lith_orientation); 
+Atlas_MRI_Voxels = permute(Atlas_IMG_Voume.Voxels,[1 3 2]); 
 
 %Double check the corrected orientations
 %Orientation_Fix=figure; 

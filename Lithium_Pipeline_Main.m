@@ -1,4 +1,4 @@
-function Lithium_Pipeline_Main(List,Lithium_Img_List,Lithium_T1_List,FS_Folder_List,Overall_Output_Dir)
+function Lithium_Pipeline_Main(List,Lithium_Img_List,Lithium_T1_List,FS_Folder_List,Overall_Output_Dir,dicm2nii_path)
 
 %% For test purposes
 List="/Users/ngh92/Documents/GitHub/Lithium_Pipeline_MATLAB/Subject_List_Test.txt";
@@ -6,6 +6,9 @@ Lithium_Img_List="/Users/ngh92/Documents/GitHub/Lithium_Pipeline_MATLAB/Avg_Mag_
 Lithium_T1_List="/Users/ngh92/Documents/GitHub/Lithium_Pipeline_MATLAB/Bliss_T1w_Lithium_List.txt";
 FS_Folder_List="/Users/ngh92/Documents/Lithium_Analysis_Script/FreeSurfer_List.txt";
 Overall_Output_Dir="/Users/ngh92/Desktop/Bliss_Output";
+dicm2nii_path="/Users/ngh92/Documents/MATLAB/Lithium_APP_Script/xiangruili-dicm2nii-3fe1a27";
+
+addpath(dicm2nii_path); 
 
 List_Import=readlines(List,"EmptyLineRule","skip");
 Lithium_Img_List=readlines(Lithium_Img_List,"EmptyLineRule","skip");
