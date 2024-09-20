@@ -30,4 +30,4 @@ newMapping = affinetform3d(newMapping4by4);
 newRef = medicalref3d(newSize,newMapping);
 
 newRef = orient(newRef,origRef.PatientCoordinateSystem);
-newVol = resample(medVol,newRef)
+newVol = resample(medVol,newRef

@@ -1,9 +1,9 @@
 function Alignment(Lith_Img,Lith_T1w_Img,FS_Dir,Output_Dir)
 
-Lith_Img="/Users/ngh92/Documents/Lithium_Analysis_Script/Lithuim_Data/bliss/temp_transfer/blissmr077/lithium/blissmr077_complex_avg_mag.nii";
-Lith_T1w_Img="/Users/ngh92/Documents/Lithium_Analysis_Script/Lithuim_Data/bliss/temp_transfer/blissmr077/lithium/blissmr077_T1w_lithium_coil.nii.gz";
-FS_Dir="/Users/ngh92/Documents/Lithium_Analysis_Script/Lithuim_Data_FreeSurfer/blissmr077";
-Output_Dir="/Users/ngh92/Documents/MATLAB/Lithium_APP_Script/Test_077";
+%Lith_Img="/Users/ngh92/Documents/Lithium_Analysis_Script/Lithuim_Data/bliss/temp_transfer/blissmr077/lithium/blissmr077_complex_avg_mag.nii";
+%Lith_T1w_Img="/Users/ngh92/Documents/Lithium_Analysis_Script/Lithuim_Data/bliss/temp_transfer/blissmr077/lithium/blissmr077_T1w_lithium_coil.nii.gz";
+%FS_Dir="/Users/ngh92/Documents/Lithium_Analysis_Script/Lithuim_Data_FreeSurfer/blissmr077";
+%Output_Dir="/Users/ngh92/Documents/MATLAB/Lithium_APP_Script/Test_077";
 
 %Make the output directory, keeping these separate for now
 mkdir(Output_Dir)
