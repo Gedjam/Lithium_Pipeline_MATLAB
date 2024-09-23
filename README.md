@@ -19,6 +19,8 @@ The pipeline is designed to be ran in **one** of **two** ways:
 
 ### I have a Proton T1w image (FreeSurfered), Lithium Data image **AND** a Lithium T1w image (aligned to the Lithium Data image)
 
+![With_Lith_ScreenShot](https://github.com/user-attachments/assets/066cd717-2944-44f0-acdb-cf45de5a11bf)
+
 
 ### I have a Proton T1w image (FreeSurfered), Lithium Data image **I DON'T** have a Lithium T1w image 
 
