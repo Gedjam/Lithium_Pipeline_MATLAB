@@ -1,10 +1,11 @@
-# Lithium Pipeline (Version 2)
+# Lithium Analyser tool
 
 ## About
 This is a processing pipeline designed to extract regional/tissue/brain information from lithium images without upsampling or smoothing the original lithium image. 
-This was designed and created by Dr Gerard Hall & Dr David Cousins for the R-LINK project. 
+This was designed and created by Dr Gerard Hall & Dr David Cousins for the R-LINK project. It was created and developed by Gerard Hall, so please go easy and for technical issues and questions please email me (email below). 
 
-## Requirments 
+## Requirments
+The pipeline is designed to be ran 
 You first need three images (all in NIFTI format) in order to run: 
   - Lithium Image (Expecting this image to be coarse in resolution i.e. 15mmx15mmx20mm)
   - T1w Lithium Coil (A structural image that is in the same "space" as the lithium image for reference) 
