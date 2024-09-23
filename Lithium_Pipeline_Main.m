@@ -1,12 +1,12 @@
 function Lithium_Pipeline_Main(List,Lithium_Img_List,Lithium_T1_List,FS_Folder_List,Overall_Output_Dir,dicm2nii_path)
 
 %% For test purposes
-List="/Users/ngh92/Documents/GitHub/Lithium_Pipeline_MATLAB/Subject_List_Test.txt";
-Lithium_Img_List="/Users/ngh92/Documents/GitHub/Lithium_Pipeline_MATLAB/Avg_Mag_List.txt";
-Lithium_T1_List="/Users/ngh92/Documents/GitHub/Lithium_Pipeline_MATLAB/Bliss_T1w_Lithium_List.txt";
-FS_Folder_List="/Users/ngh92/Documents/Lithium_Analysis_Script/FreeSurfer_List.txt";
-Overall_Output_Dir="/Users/ngh92/Desktop/Bliss_Output";
-dicm2nii_path="/Users/ngh92/Documents/MATLAB/Lithium_APP_Script/xiangruili-dicm2nii-3fe1a27";
+%List="/Users/ngh92/Documents/GitHub/Lithium_Pipeline_MATLAB/Subject_List_Test.txt";
+%Lithium_Img_List="/Users/ngh92/Documents/GitHub/Lithium_Pipeline_MATLAB/Avg_Mag_List.txt";
+%Lithium_T1_List="/Users/ngh92/Documents/GitHub/Lithium_Pipeline_MATLAB/Bliss_T1w_Lithium_List.txt";
+%FS_Folder_List="/Users/ngh92/Documents/Lithium_Analysis_Script/FreeSurfer_List.txt";
+%Overall_Output_Dir="/Users/ngh92/Desktop/Bliss_Output";
+%dicm2nii_path="/Users/ngh92/Documents/MATLAB/Lithium_APP_Script/xiangruili-dicm2nii-3fe1a27";
 
 addpath(dicm2nii_path); 
 
@@ -16,6 +16,8 @@ Lithium_T1_List=readlines(Lithium_T1_List,"EmptyLineRule","skip");
 FS_Folder_List=readlines(FS_Folder_List,"EmptyLineRule","skip"); 
 
 mkdir(strcat(Overall_Output_Dir,"/Overall_Stats")); 
+
+disp("Running Lithium main")
 
 %% Run the pipeline calculate stats per individual
 %Keeping the for loop separate to allow for parfor later on
@@ -45,7 +47,7 @@ for i=1:length(List_Import)
 
 end
 
-%% Get all subjects and create a total table, WORK ON THIS TOMORROW
+%% Get all subjects and create a total table (Should probably modularise this)
 %Need to repad the table, with all names, 
 %How many subjects? 
 Subj_Size=length(List_Import);
