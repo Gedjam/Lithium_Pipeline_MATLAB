@@ -9,6 +9,11 @@ The pipeline is designed to be ran in MATLAB_2024a or later. It requires you to 
 
 Also it is required that you freesufer your Proton T1w image (https://surfer.nmr.mgh.harvard.edu), you don't need to FreeSurfer your Lithium T1w image if you have one. 
 
+## How to run
+
+### First Step, launch the App 
+
+![Screenshot 2024-09-23 at 14 28 02](https://github.com/user-attachments/assets/fedcda28-2a7a-49c9-b590-a12328a92e82)
 
 The pipeline is designed to be ran in **one** of **two** ways: 
 
